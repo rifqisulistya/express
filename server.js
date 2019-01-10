@@ -73,20 +73,31 @@ app.get('/runningtext', (req, res) => {
   res.send({text:'dari express'});
 });
 
-app.get('/mysql', (req, res) => {					//sama kaya import di react							//melakukan aksi connect
-	connection.query('SELECT * FROM blogs ORDER BY id DESC', function (err, rows, fields) { 		//sifatnya async (err, rows, fields)
-	  if (err) throw err																//biasanya pake try catch
-	  res.send(rows);
-	  console.log('The title is: ', rows[0].title)								//rows dalam bentuk array //solution column nya
+app.get('/blogmobile', (req, res) => {
+
+  res.send(
+  	[{text:'initialPost1'}, {text:'initialPost2'}]
+  );
+});
+
+app.get('/mysql', (req, res) => {				
+	connection.query('SELECT * FROM blogs ORDER BY id DESC', function (err, rows, fields) { 
+	  if (err) throw err																
+	  res.send(rows);							//rows dalam bentuk array //solution column nya
 	})	
 });
 
 app.post('/mysql', (request, response) => {
 	console.log(request.body)
 	connection.query("INSERT INTO blogs SET ?", request.body, (error, result) => 
-	{if (error) throw error;
-
-		response.status(201).send(result.insertId);	
+	{	
+		console.log('string error', error)
+		if (error) {
+			throw error;
+		}	
+		console.log('result', result.insertId)
+		console.log('result2', result.id)
+		response.status(200).send({id:result.insertId});	
 	})
 });
 
@@ -99,21 +110,16 @@ app.delete('/mysql/:id', (request, response) => {
         response.send('post deleted.');
     });
 });
-var flatListData = [
-	{
-		"key": "1",
-        "text": "initialPost1",
-	},
-	{
-		"key": "2",
-        "text": "initialPost2",
-	}
-]
-app.get('/blogmobile', (req, res) => {
 
-  res.send(
-  	[{text:'initialPost1'}, {text:'initialPost2'}]
-  );
+app.put('/mysql/:id', (request, response) => {
+    const id = request.params.id;
+ 
+    connection.query('UPDATE blogs SET ? WHERE id = ?', [request.body, id], (error, result) => {
+        if (error) {
+        	throw error;
+ 		}
+        response.send('Post updated successfully.');
+    });
 });
 
 // Listen to the App Engine-specified port, or 8080 otherwise
