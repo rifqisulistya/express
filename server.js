@@ -19,65 +19,67 @@ const config = { 		//menyambungkan express dengan database
 };
 const connection = mysql.createPool(config);
 
-let biodata = {
-	nama: 'Rifqi',
-	umur: '25',
-	alamat: 'antapani',
-	ttl: 'Bandung, 9 April 1993',
-	riwayatPendidikan: [
-		{
-			jenjang: "sd",
-			sekolah: "SD Istiqamah"
-		},
-		{
-			jenjang: "smp",
-			sekolah: "SMP Istiqamah"
 
-		},
-		{
-			jenjang: "sma",
-			sekolah: "SMAN 3"
-		},	
-		{
-			jenjang: "univ",
-			sekolah: "itb"
-		}
-	]
-}
+var MongoClient = require('mongodb').MongoClient;
+var mongo = require('mongodb');
+var url = "mongodb://localhost:27017/";
+var ObjectId = require('mongodb').ObjectID;
 
-app.get('/', (req, res) => {
-
-  res.send(biodata);
+app.get('/mongodb', (req, res) => {
+	MongoClient.connect(url, function(err, db) {
+	  if (err) throw err;
+	  var dbo = db.db("blogmobile");
+	  dbo.collection("blogs").find({}).toArray(function(err, result) {
+	    if (err) throw err;
+	    console.log(result.name);
+	    db.close();
+	    res.send(result)
+	  });
+	});
 });
 
-app.get('/sekolah/:jenjang', (req, res) => {
-	
-	function cariSekolah(biodata,jenjang) {
-		let rp = biodata.riwayatPendidikan;
-		var i=0;
-		while (i < rp.length) {
-			if (jenjang == rp[i].jenjang) {
-				return rp[i].sekolah;
-			} 
-			i++;
-		}
-		return "sekolah tidak ada"
-	}
-	
-	let output= cariSekolah(biodata,req.params.jenjang);
-  res.send(output);
+app.post('/mongodb', (req, res) => {
+	MongoClient.connect(url, function(err, db) {
+	  if (err) throw err;
+	  var dbo = db.db("blogmobile");
+	  var post = req.body
+	  dbo.collection("blogs").insertOne(post, function(err, result) {
+	    if (err) throw err;
+	    console.log("1 document inserted");
+	    db.close();
+	    res.status(200).send({_id:post._id});
+	  });
+	});
 });
 
-app.get('/runningtext', (req, res) => {
-
-  res.send({text:'dari express'});
+app.delete('/mongodb/:id', (request, response) => {
+	MongoClient.connect(url, function(err, db) {
+	  if (err) throw err;
+	  var dbo = db.db("blogmobile");
+	    const id = {_id: new mongo.ObjectID(request.params.id)};
+ 		console.log(id)
+	  dbo.collection("blogs").deleteOne(id, function(err, obj) {
+	    if (err) throw err;
+	    console.log("1 document deleted");
+	    db.close();
+	    response.send(obj)
+	  });
+	});
 });
 
-app.get('/blogmobile', (req, res) => {
-
-  res.send(
-  	[{text:'initialPost1'}, {text:'initialPost2'}]
-  );
+app.put('/mongodb/:id', (request, response) => {
+	MongoClient.connect(url, function(err, db) {
+	  	if (err) throw err;
+	  	var dbo = db.db("blogmobile");
+	  	const id = {_id: new mongo.ObjectID(request.params.id)};
+ 		console.log(id)
+	  	dbo.collection("blogs").updateOne(id, {$set:request.body}, function(err, result) {
+	    	if (err) throw err;
+	    console.log("1 document updated");
+	    db.close();
+	    response.status(200).json(result);
+	  });
+	});
 });
 
 app.get('/mysql', (req, res) => {				
@@ -122,9 +124,78 @@ app.put('/mysql/:id', (request, response) => {
     });
 });
 
+// MongoClient.connect("mongodb://localhost:27017/MyDb", function (err, db) {   
+//     if(err) {
+//      	throw err;
+//     }
+                
+// });
+
 // Listen to the App Engine-specified port, or 8080 otherwise
 const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}...`);
 	});
 
+//mongod -dbpath .
+
+// let biodata = {
+// 	nama: 'Rifqi',
+// 	umur: '25',
+// 	alamat: 'antapani',
+// 	ttl: 'Bandung, 9 April 1993',
+// 	riwayatPendidikan: [
+// 		{
+// 			jenjang: "sd",
+// 			sekolah: "SD Istiqamah"
+// 		},
+// 		{
+// 			jenjang: "smp",
+// 			sekolah: "SMP Istiqamah"
+
+// 		},
+// 		{
+// 			jenjang: "sma",
+// 			sekolah: "SMAN 3"
+// 		},	
+// 		{
+// 			jenjang: "univ",
+// 			sekolah: "itb"
+// 		}
+// 	]
+// }
+
+// app.get('/', (req, res) => {
+
+//   res.send(biodata);
+// });
+
+// app.get('/sekolah/:jenjang', (req, res) => {
+	
+// 	function cariSekolah(biodata,jenjang) {
+// 		let rp = biodata.riwayatPendidikan;
+// 		var i=0;
+// 		while (i < rp.length) {
+// 			if (jenjang == rp[i].jenjang) {
+// 				return rp[i].sekolah;
+// 			} 
+// 			i++;
+// 		}
+// 		return "sekolah tidak ada"
+// 	}
+	
+// 	let output= cariSekolah(biodata,req.params.jenjang);
+//   res.send(output);
+// });
+
+// app.get('/runningtext', (req, res) => {
+
+//   res.send({text:'dari express'});
+// });
+
+// app.get('/blogmobile', (req, res) => {
+
+//   res.send(
+//   	[{text:'initialPost1'}, {text:'initialPost2'}]
+//   );
+// });
