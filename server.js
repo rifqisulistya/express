@@ -29,7 +29,7 @@ app.get('/mongodb', (req, res) => {
 	MongoClient.connect(url, function(err, db) {
 	  if (err) throw err;
 	  var dbo = db.db("blogmobile");
-	  dbo.collection("blogs").find({}).toArray(function(err, result) {
+	  dbo.collection("blogs").find({}).sort({'_id': -1}).toArray(function(err, result) {
 	    if (err) throw err;
 	    console.log(result.name);
 	    db.close();
