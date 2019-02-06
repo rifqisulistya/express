@@ -10,11 +10,11 @@ app.use(bodyParser.urlencoded({
 	extended: true
 }));
 
-const config = { 		//menyambungkan express dengan database
+const config = { 								//menyambungkan express dengan database
   host     : 'localhost',						//mungkin disimpen di server berbeda. bisa jadi ip tertentu
   user     : 'root',							//user database
-  password : '',						//pw database
-  database : 'microblogging'							//pake yg suar aja
+  password : '',								//pw database
+  database : 'microblogging'					//pake yg suar aja
   												//satu lagi ada port default mysql:'3306'. di port lain mysql juga bisa misal 3307, specify di port ini
 };
 const connection = mysql.createPool(config);
@@ -48,6 +48,26 @@ app.post('/mongodb', (req, res) => {
 	    console.log("1 document inserted");
 	    db.close();
 	    res.status(200).send({_id:post._id});
+	  });
+	});
+});
+
+app.get('/mongodblogin', (req, res) => {
+	MongoClient.connect(url, function(err, db) {
+	  if (err) throw err;
+	  var dbo = db.db("blogmobile");
+	  var login = req.body
+	  dbo.collection("user").findOne(login, function(err, result) {
+	    console.log(result)
+	    if (err) console.log(err);
+	    db.close();
+	    var statusCode = null;
+	    if (res.statusCode >= 100 && res.statusCode < 600) {
+	    	statusCode = res.statusCode;
+	    } else {
+	    	statusCode = 500;
+	    }
+	    res.status(statusCode).json({_id:result._id},{username:result.username});
 	  });
 	});
 });
