@@ -52,22 +52,25 @@ app.post('/mongodb', (req, res) => {
 	});
 });
 
-app.get('/mongodblogin', (req, res) => {
+app.post('/mongodblogin', (req, res) => {
 	MongoClient.connect(url, function(err, db) {
 	  if (err) throw err;
 	  var dbo = db.db("blogmobile");
 	  var login = req.body
+	    console.log(login)
 	  dbo.collection("user").findOne(login, function(err, result) {
-	    console.log(result)
-	    if (err) console.log(err);
-	    db.close();
-	    var statusCode = null;
-	    if (res.statusCode >= 100 && res.statusCode < 600) {
-	    	statusCode = res.statusCode;
+	    if (err) {
+	    	res.send(err.message)
 	    } else {
-	    	statusCode = 500;
-	    }
-	    res.status(statusCode).json({_id:result._id},{username:result.username});
+	    	if (result._id != null) {
+	    		res.send({_id:result._id, username:result.username});	
+	    	} else {
+	    		res.send(result._id)
+	    	}
+	    };
+	    console.log(result)
+	    db.close();
+	    //res.status(200).send({_id:result._id},{username:result.username});
 	  });
 	});
 });
